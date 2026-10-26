@@ -15,7 +15,6 @@ import {
 } from "@remixicon/react";
 import Link from "next/link";
 import * as React from "react";
-import { ApprovalCard } from "@/components/ai/approval-card";
 import { ContextCardStack } from "@/components/ai/context-card";
 import { DiffTable } from "@/components/ai/diff-table";
 import { FilterTable } from "@/components/ai/filter-table";
@@ -49,6 +48,8 @@ import {
 } from "@/components/base/table/table";
 import { Tab, TabList, TabPanel, Tabs } from "@/components/base/tabs/tabs";
 import { type OrbState, ThinkingOrb } from "@/components/base/thinking-orb";
+import { GatewayApprovalCard } from "@/components/chat/gateway-approval-card";
+import { NativeApprovalCard } from "@/components/chat/native-approval-card";
 import { AsteriskMark } from "@/components/foundations/brand/asterisk-mark";
 import * as Modal from "@/components/base/modal/modal";
 import { ARTIFACT_CAPABILITY_ROWS } from "./artifact-capability-matrix";
@@ -465,20 +466,44 @@ export function ComponentLab() {
           <LoadingState label="Loading runs" />
         </Section>
 
-        <Section label="AI kit · Approval card">
-          <ApprovalCard
-            question="Allow network access to install dependencies?"
-            options={[
-              {
-                label: "Approve for this run",
-                detail: "Reach the npm registry until the run finishes",
-              },
-              { label: "Approve once", detail: "A single install, then revoke access" },
-            ]}
-            allowCustom
-            onApprove={() => {}}
-            onDeny={() => {}}
-          />
+        <Section label="Chat · Approval cards (one card, two lanes)">
+          <div className="flex flex-col gap-3">
+            <NativeApprovalCard
+              request={{
+                id: "lab-native",
+                sessionId: "lab",
+                requestKind: "command",
+                detail: "rm -rf ./dist && bun run build",
+              }}
+              submitting={false}
+              error={null}
+              onRespond={() => {}}
+            />
+            <GatewayApprovalCard
+              approval={{
+                id: "lab-gateway-pending",
+                runId: "lab",
+                toolName: "deploy_service",
+                arguments: { service: "billing", command: "deploy --prod" },
+                status: "pending",
+                requestedAt: new Date().toISOString(),
+                resolvedAt: null,
+                resolvedBy: null,
+              }}
+            />
+            <GatewayApprovalCard
+              approval={{
+                id: "lab-gateway-approved",
+                runId: "lab",
+                toolName: "deploy_service",
+                arguments: { service: "billing" },
+                status: "approved",
+                requestedAt: new Date(Date.now() - 60_000).toISOString(),
+                resolvedAt: new Date().toISOString(),
+                resolvedBy: "dana",
+              }}
+            />
+          </div>
         </Section>
 
         <Section label="AI kit · Context cards">
